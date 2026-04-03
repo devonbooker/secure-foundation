@@ -39,7 +39,29 @@ A production-grade AWS foundation provisioned entirely with Terraform. No consol
 
 > **Note:** You need to manually create an S3 bucket (versioning + encryption enabled) and a DynamoDB table (partition key `LockID`, type String) before running `terraform init`. This is a one-time bootstrap - Terraform cannot create its own backend.
 
+## Build Log
 
+### Phase 1: Terraform Fundamentals + Environment
+
+Started by installing Terraform, AWS CLI, tflint, and terraform-docs in WSL2 on Windows 11. I use WSL2 because learning Linux is non-negotiable if you want to be excellent in cloud. It acts and feels like an Ubuntu machine without spinning up a whole VM. More info [here](https://learn.microsoft.com/en-us/windows/wsl/install).
+
+Spent time reading the official Terraform docs - providers, resources, variables, outputs, locals, and data sources. First time reading HCL syntax, but honestly it was super readable compared to something like Python. I was able to read and understand configs without constantly looking things up.
+
+**S3 Backend + DynamoDB Lock Table (Manual Bootstrap)**
+
+Configured an S3 bucket and DynamoDB lock table manually in my AWS account before writing any Terraform. The purpose: avoid a chicken-and-egg problem. Terraform can push or destroy hundreds of resources with one command, so creating the state backend manually up front prevents my automation from accidentally destroying core infrastructure. Think of it like network segmentation via VLANs - having a management VLAN prevents accidental mistakes.
+
+**Preventing Data Disclosure**
+
+Because this repo is public and going on my resume, I had my first opportunity to practice secure habits. Terraform state files (`*.tfstate`, `*.tfstate.*`) contain every resource ID, ARN, IP address, and sometimes plaintext outputs for everything Terraform manages. An attacker could use that to map my entire infrastructure. So I added state files and other semi-sensitive configs to `.gitignore` before the first commit. My local instance has all the files Terraform needs, but they never sync to the public repo.
+
+**VPC + Subnets**
+
+Created a VPC with two subnets - `10.0.1.0/24` for public and `10.0.2.0/24` for private. Tagged everything with project name, environment, and `ManagedBy = terraform`. Then ran `terraform init`, `terraform plan`, `terraform apply`, and `terraform destroy` repeatedly to understand the full lifecycle and build confidence that state was tracking correctly in S3.
+
+## Security Decisions
+
+*Documented as I go - every decision has a reason.*
 
 ## Terraform Fundamentals + Environment
 I started by installing Terraform, AWS CLI, TFlint, and terraform-docs into my WSL2. I use a Windows 11 machine. But I know how important learning Linux is if I'm going to be excellent in cloud. So I downloaded something called WSL2. It's basically a Linux plugin that runs on top of your PowerShell instance. It acts and feels like an Ubuntu machine, without having to spin up a whole VM. Super useful. More info can be found [here](https://learn.microsoft.com/en-us/windows/wsl/install). Installing the essential tools mentioned was super easy. I just googled "install terraform on WSL2" and it gave me a command I can just run in my terminal. I did that for all 4 tools. 
