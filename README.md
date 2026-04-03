@@ -67,16 +67,12 @@ Created a VPC with two subnets - `10.0.1.0/24` for public and `10.0.2.0/24` for 
 | S3 backend with DynamoDB locking | Prevents state corruption from concurrent runs and enables team collaboration |
 | State files in .gitignore | State can contain plaintext secrets and full infrastructure mapping |
 | All resources tagged | Consistent tagging enables cost tracking, ownership, and automated policy enforcement |
+| Terragrunt for multi-account management | |
+| Service Control Policies (SCPs) | |
+| AWS Security Hub integration | | 
+| CI/CD pipeline for ```terraform plan``` on PRs | | 
 | *More to come as the project progresses...* |  |
 
-## Terraform Fundamentals + Environment
-I started by installing Terraform, AWS CLI, TFlint, and terraform-docs into my WSL2. I use a Windows 11 machine. But I know how important learning Linux is if I'm going to be excellent in cloud. So I downloaded something called WSL2. It's basically a Linux plugin that runs on top of your PowerShell instance. It acts and feels like an Ubuntu machine, without having to spin up a whole VM. Super useful. More info can be found [here](https://learn.microsoft.com/en-us/windows/wsl/install). Installing the essential tools mentioned was super easy. I just googled "install terraform on WSL2" and it gave me a command I can just run in my terminal. I did that for all 4 tools. 
-
-Then I spent some time reading the official Terraform docs. This was my first time reading HCL syntax. But honestly it was super readible compared to even something like Python. I've been able to read and understand the code without having to look it up. I'm glad they made Terraform, an infrastructure as code tool, easy to read because it only makes your job so much faster. I read a little bit about providers, resources, variables, outputs, locals, and data sources.
-
-The next thing I did was configure an S3 bucket and DynamoDB lock table manually in my AWS account. The purpose of this is not to have a chicken + egg situation. Terraform is super powerful. You can push or destroy hundreds of lines of code with one command. So creating this bucket and lock table combo in the beginning of my project prevents important core infrastructure configurations to be unaffected by my automation. Think of it like network segmentation via VLANs - having a management VLAN prevents accidential mistakes. 
-
-Now because this project is meant to be public, and it's going on my resume, I had my first opportunity to prevent a data disclosure. In Terraform there are 2 config files called "\*.tfstate" and "\*.tfstate.*". This file contains every resource IP, ARN, IP address and sometimes plaintext outputs for everything Terraform manages. This could allow attacks to see how my infrastructure is mapped and how it's connected. No bueno. So I added it to my .gitignore folder found [here](.gitignore). I also included some other config files in the ignore list for semi-sensitive content that doesn't really need to be advertised on GitHub. Adding something to .gitignore allows it to be ignored when you run the command "git push" in WSL2. My local instance of my repo will have all the required files for Terraform, but it won't be synced with my public GitHub repo.
 
 The next thing I did was create a VPC with 2 subnets (private and public). You can find the config [here](main.tf). I made a super basic VPC, attached it to the "dev" environment and associated the "Terraform" tag with it. And for my subnets, I 10.0.1.0/24 for public and 10.0.2.0/24 for private. Once everything looked good, it was time to use Terraform to automate infrastructure set up and tear down.
 
