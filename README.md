@@ -20,4 +20,4 @@ In this current economy, cloud and AI are super hot. Every ambitious company out
 
 ---
 ## Terraform Fundamentals + Environment
-I started by installing Terraform, AWS CLI, TFlint, and terraform-docs into my WSL2. I use a Windows 11 machine. But I know how important learning Linux is if I'm going to be excellent in cloud. So I downloaded something called WSL2. It's basically a Linux plugin that runs on top of your PowerShell instance. It acts and feels like an Ubuntu machine, without having to spin up a whole VM. Super useful. More info can be found here (https://learn.microsoft.com/en-us/windows/wsl/install)
+I started by installing Terraform, AWS CLI, TFlint, and terraform-docs into my WSL2. I use a Windows 11 machine. But I know how important learning Linux is if I'm going to be excellent in cloud. So I downloaded something called WSL2. It's basically a Linux plugin that runs on top of your PowerShell instance. It acts and feels like an Ubuntu machine, without having to spin up a whole VM. Super useful. More info can be found [here](https://learn.microsoft.com/en-us/windows/wsl/install)
