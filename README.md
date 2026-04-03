@@ -17,3 +17,6 @@ In this current economy, cloud and AI are super hot. Every ambitious company out
 - All resources tagged consistently
 
 **Tools:** Terraform, tflint, terraform-docs, Terratest (Go), AWS (VPC, IAM, S3, CloudTrail, GuardDuty, Config), Linux, Git
+---
+### Terraform Fundamentals + Environment
+I started by installing Terraform, AWS CLI, TFlint, and terraform-docs into my WSL2. I use a Windows 11 machine. But I know how important learning Linux is if I'm going to be excellent in cloud. So I downloaded something called WSL2. 
