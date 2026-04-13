@@ -59,6 +59,24 @@ Because this repo is public and going on my resume, I had my first opportunity t
 
 Created a VPC with two subnets - `10.0.1.0/24` for public and `10.0.2.0/24` for private. Tagged everything with project name, environment, and `ManagedBy = terraform`. Then ran `terraform init`, `terraform plan`, `terraform apply`, and `terraform destroy` repeatedly to understand the full lifecycle and build confidence that state was tracking correctly in S3.
 
+### Phase 2: Modules, Validation, and Tooling
+
+**VPC Module Refactor**
+
+Restructured the flat VPC config into a reusable module at `modules/vpc/`. Module has its own `main.tf`, `variables.tf`, `outputs.tf`, and `versions.tf`. Updated the root to call the module and pass all inputs through. Since the VPC had already been applied, used `terraform state mv` to move the three existing resources to their new module addresses (`module.vpc.aws_vpc.main`, etc.) before applying. Ran `terraform plan` after the move to confirm zero infrastructure changes - the refactor was purely structural.
+
+**NAT Gateway, IGW, Route Tables, Security Groups**
+
+Expanded the VPC module to include a full networking stack. Internet Gateway attached to the VPC for public subnet outbound access. NAT Gateway (with Elastic IP) deployed into the public subnet so private subnet resources can reach the internet without being directly reachable. Separate route tables for public (`0.0.0.0/0 → IGW`) and private (`0.0.0.0/0 → NAT GW`) subnets. Two security groups: public allows inbound 80/443 only, private allows inbound from within the VPC CIDR only. Both allow all outbound.
+
+**Variable Validation Blocks**
+
+Added validation blocks across root and module variables. CIDR variables use `can(cidrnetmask())` to reject malformed input before Terraform ever calls the AWS API. Environment is enforced as an enum (`dev`, `staging`, `prod`) to prevent typos from silently creating mistaggged resources. Project name is validated against a regex to keep it safe for use in AWS resource names and DNS. Added a required `tags` variable of type `map(string)` with validation requiring `Environment` and `Owner` keys - enforces organizational tagging policy at the variable layer rather than relying on convention.
+
+**TFLint + Pre-commit Hook**
+
+Configured TFLint with the AWS ruleset (`tflint-ruleset-aws v0.40.0`) via `.tflint.hcl`. Set up a pre-commit hook that runs `tflint --recursive` before every commit and blocks if any issues are found. Added terraform-docs to the same hook so `modules/vpc/README.md` is always regenerated and staged automatically. Zero tolerance policy: nothing commits with lint output.
+
 ## Security Decisions
 
 *Documented as I go - every decision has a reason.*
@@ -67,6 +85,13 @@ Created a VPC with two subnets - `10.0.1.0/24` for public and `10.0.2.0/24` for 
 | S3 backend with DynamoDB locking | Prevents state corruption from concurrent runs and enables team collaboration |
 | State files in .gitignore | State can contain plaintext secrets and full infrastructure mapping |
 | All resources tagged | Consistent tagging enables cost tracking, ownership, and automated policy enforcement |
+| Required `tags` variable with validation | Enforces `Environment` and `Owner` keys on every resource at plan time - policy can't be skipped or forgotten |
+| Public SG: 80/443 inbound only, no SSH | Least privilege - SSH added per use case scoped to a specific IP, not left open by default |
+| Private SG: inbound from VPC CIDR only | Private resources are unreachable from the internet regardless of what gets deployed into the private subnet |
+| NAT Gateway in public subnet, not private | Private subnet gets outbound internet access without any inbound exposure - clean one-way traffic flow |
+| Variable validation on CIDR blocks and environment | Catches malformed input at plan time rather than letting a bad value reach the AWS API and fail obscurely |
+| TFLint pre-commit hook with zero tolerance | Lint issues can't be committed - enforcement is automatic, not reliant on developer discipline |
+| `terraform state mv` before module refactor | Prevents destroy/recreate of live infrastructure when restructuring code - state addresses must match resource addresses |
 | Terragrunt for multi-account management | |
 | Service Control Policies (SCPs) | |
 | AWS Security Hub integration | | 
